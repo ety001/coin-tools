@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Bitshares Dev Tools</title>
+    <script src="//cdn.steemjs.com/lib/latest/steem.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <script src="https://cdn.bootcss.com/reconnecting-websocket/1.0.0/reconnecting-websocket.min.js"></script>
+    <style>
+      #app {
+        margin: 10px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="app">
+      <h1>Bitshares Dev Tools</h1>
+      <el-row>
+        <el-col :span="24" style="margin: 10px; padding: 10px; background-color: #ddd;">
+          <p>
+            我是Steem见证人，欢迎给我投上一票。投票地址：
+            <a href="https://v2.steemconnect.com/sign/account-witness-vote?witness=ety001&approve=1" target="_blank">https://v2.steemconnect.com/sign/account-witness-vote?witness=ety001&approve=1</a>
+          </p>
+          <p>
+            I'm a steem witness，welcome to vote me by steemconnect:
+            <a href="https://v2.steemconnect.com/sign/account-witness-vote?witness=ety001&approve=1" target="_blank">https://v2.steemconnect.com/sign/account-witness-vote?witness=ety001&approve=1</a>
+          </p>
+        </el-col>
+      </el-row>
+      <el-row>
+        <el-col :span="24">
+          <el-form ref="form" label-width="80px">
+            <el-form-item label="Api URL">
+              <el-input v-model="api_url"></el-input>
+            </el-form-item>
+            <el-form-item label="Command">
+              <el-input v-model="command" type="textarea"></el-input>
+            </el-form-item>
+            <el-form-item>
+              <el-button type="primary" @click="connect">Connect</el-button>
+              <el-button type="success" @click="run">Run</el-button>
+              <el-button type="info" @click="clearresult">Clear Result</el-button>
+              <el-button type="info" @click="clearhistory">Clear History</el-button>
+              <el-tag v-if="status == true" type="success">Connected</el-tag>
+              <el-tag v-if="status == false" type="danger">Unconnected</el-tag>
+            </el-form-item>
+          </el-form>
+        </el-col>
+      </el-row>
+      <el-row>
+        <el-col :span="12">
+          <h1>Result</h1>
+          <div style="max-height: 350px; overflow: scroll;">
+            <pre>{{ result }}</pre>
+          </div>
+        </el-col>
+        <el-col :span="12">
+          <h1>History</h1>
+          <el-table
+            :data="history"
+            style="width: 100%"
+            max-height="350">
+            <el-table-column
+              fixed
+              prop="command"
+              label="Command">
+            </el-table-column>
+            <el-table-column>
+              <template slot-scope="scope">
+                <el-button
+                  size="mini"
+                  @click="useagain(scope.$index, scope.row)">Use again</el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+        </el-col>
+      </el-row>
+    </div>
+    <script>
+      var app = new Vue({
+        el: '#app',
+        data: {
+          result: '',
+          api_url: 'wss://ws.gdex.top',
+          command: '',
+          history: [],
+          ws: null,
+          status: false
+        },
+        methods: {
+          run() {
+            if (this.ws.readyState === 1) {
+              if (this.command) {
+                this.ws.send(this.command);
+                this.output(`> ${this.command}`);
+                this.history.unshift({'command': this.command});
+                localStorage.setItem('history', JSON.stringify(this.history));
+              }
+            } else {
+              this.output(`Lost connection. Connected again please.`);
+            }
+          },
+          connect() {
+            this.ws = new ReconnectingWebSocket(this.api_url);
+            this.ws.onopen = this.onopen;
+            this.ws.onmessage = this.onmessage;
+          },
+          clearresult() {
+          },
+          clearhistory() {
+          },
+          useagain(index, row) {
+            this.command = row.command;
+          },
+          onopen() {
+            if (this.ws.readyState == 1) {
+              this.status = true;
+            } else {
+              this.status = false;
+            }
+            console.log('onopen');
+          },
+          onmessage(evt) {
+            this.output(`< ${evt.data}`);
+            console.log('onmessage');
+          },
+          onclose() {
+            this.output('onclose');
+            console.log('onclose');
+            this.status = false;
+          },
+          output(msg) {
+            this.result = `${this.result}${msg}\n-----\n`;
+          }
+        },
+        mounted() {
+          const history = localStorage.getItem('history');
+          if (history) {
+            this.history = JSON.parse(history);
+          }
+        }
+      });
+    </script>
+  </body>
+</html>
