@@ -29,13 +29,13 @@
                 prop="project"
                 label="Project">
                 <template slot-scope="scope">
-                  <a href="{{ project.url }}">{{ project.title }}</a>
+                  <a href="{{ scope.project.url }}">{{ scope.project.title }}</a>
                 </template>
               </el-table-column>
               <el-table-column
                 prop="repo">
                 <template slot-scope="scope">
-                  <a href="{{ repo }}">Repo</a>
+                  <a href="{{ scope.repo }}">Repo</a>
                 </template>
               </el-table-column>
             </el-table>
