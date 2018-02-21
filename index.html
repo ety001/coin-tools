@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <title>Bitshares Dev Tools</title>
-    <script src="//cdn.steemjs.com/lib/latest/steem.min.js"></script>
+    <script src="https://cdn.steemjs.com/lib/latest/steem.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vue"></script>
     <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
     <script src="https://unpkg.com/element-ui/lib/index.js"></script>
@@ -21,24 +21,9 @@
           <h1>Coin Tools</h1>
           <p><a href="https://github.com/ety001/coin-tools">Github repo</a></p>
           <p>
-            <el-table
-              :data="tools"
-              style="width: 100%">
-              <el-table-column
-                fixed
-                prop="project"
-                label="Project">
-                <template slot-scope="scope">
-                  <a href="{{ scope.project.url }}">{{ scope.project.title }}</a>
-                </template>
-              </el-table-column>
-              <el-table-column
-                prop="repo">
-                <template slot-scope="scope">
-                  <a href="{{ scope.repo }}">Repo</a>
-                </template>
-              </el-table-column>
-            </el-table>
+            <ul>
+              <li v-for="tool in tools"><a :href="tool.project.url">{{ tool.project.title }}</a>&nbsp;&nbsp;[<a :href="tool.repo">Repo</a>]</li>
+            </ul>
           </p>
         </el-col>
       </el-row>
