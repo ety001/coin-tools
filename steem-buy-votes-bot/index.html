@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Buy Votes Bot</title>
+    <script src="//cdn.steemjs.com/lib/latest/steem.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <style>
+      #app {
+        margin: 10px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="app">
+      <h1>Buy Votes Bot for <a href="https://steemit.com/@minnowbooster" target="_blank">minnowbooster</a></h1>
+      <div>
+        <p><span style="color: red; font-weight: bolder;">注意1：</span>
+        请保证你的文章质量，然后再买赞。</p>
+        <p><span style="color: red; font-weight: bolder;">Attention 1:</span>
+        Please ensure the quality of your article, and then buy votes.</p>
+        <p><span style="color: red; font-weight: bolder;">注意 2：</span>
+        每成功买赞一次我将收取 0.001 SBD 作为服务费。</p>
+        <p><span style="color: red; font-weight: bolder;">Attention 2:</span>
+          I will charge 0.001 SBD for each successful purchase.</p>
+        <p><span style="color: red; font-weight: bolder;">注意 3：</span>
+          每次成功买赞的文章，都将会有一条推广评论。</p>
+        <p><span style="color: red; font-weight: bolder;">Attention 3:</span>
+          Every successful buy votes article, there will be a promotion comment.</p>
+      </div>
+      <el-row>
+        <el-col :span="24">
+          <el-form ref="form" label-width="80px">
+            <el-form-item label="Username">
+              <el-input v-model="username"></el-input>
+            </el-form-item>
+            <el-form-item label="ActiveKey">
+              <el-input type="password" v-model="active_key"></el-input>
+            </el-form-item>
+            <el-form-item label="PostURL">
+              <el-input v-model="post_url"></el-input>
+            </el-form-item>
+            <el-form-item label="To">
+              <el-input v-model="to"></el-input>
+            </el-form-item>
+            <el-form-item label="Money">
+              <el-input v-model="money"></el-input>
+            </el-form-item>
+            <el-form-item>
+              <el-button type="success" @click="start">Start</el-button>
+              <el-button type="warning" @click="stop">Stop</el-button>
+              <el-button @click="clear">Clear</el-button>
+            </el-form-item>
+          </el-form>
+        </el-col>
+      </el-row>
+      <el-row>
+        <el-col :span="24">
+          <p>
+            我是Steem见证人，欢迎给我投上一票。投票地址：
+            <a href="https://v2.steemconnect.com/sign/account-witness-vote?witness=ety001&approve=1" target="_blank">https://v2.steemconnect.com/sign/account-witness-vote?witness=ety001&approve=1</a>
+          </p>
+          <p>
+            I'm a steem witness，welcome to vote me by steemconnect:
+            <a href="https://v2.steemconnect.com/sign/account-witness-vote?witness=ety001&approve=1" target="_blank">https://v2.steemconnect.com/sign/account-witness-vote?witness=ety001&approve=1</a>
+          </p>
+        </el-col>
+      </el-row>
+      <el-row>
+        <el-col :span="24">
+          <div>Status: {{ status ? 'Running!' : 'Stopped!' }}</div>
+          <div>
+            <pre>{{ result }}</pre>
+          </div>
+        </el-col>
+      </el-row>
+    </div>
+    <script>
+      var app = new Vue({
+        el: '#app',
+        data: {
+          status: false,
+          username: '',
+          active_key: '',
+          post_url: '',
+          money: '',
+          result: '',
+          to: 'minnowbooster',
+          from_block: 0,
+          interval: null,
+          money_str: null
+        },
+        methods: {
+          start() {
+            if (this.status == false) {
+              this.sendMoney();
+              this.getHistory();
+              this.result = "start... \n";
+              this.status = true;
+            }
+          },
+          sendMoney() {
+            if (this.username && this.active_key && this.post_url && this.money && this.to) {
+              const money = new Number(this.money);
+              this.money_str = `${money.toFixed(3)} SBD`;
+              steem.broadcast.transfer(
+                this.active_key,
+                this.username,
+                this.to,
+                this.money_str,
+                this.post_url,
+                (err, res) => {
+                  console.log('send_money:', err, res);
+                  this.result = `${this.result}Transfer ${this.money_str}. BlockNum: ${res.block_num}\n`;
+                  this.from_block = res.block_num;
+                });
+            }
+          },
+          getHistory() {
+            this.result = `${this.result}Get history start!\n`;
+            this.interval = setInterval(() => {
+              console.log(this.from_block);
+              if (this.from_block !== 0) {
+                const from = this.from_block;
+                steem.api.getDynamicGlobalProperties((err, res) => {
+                  const head_block_number = res.head_block_number;
+                  if (from < head_block_number) {
+                    console.log(`Find result in blocks from ${from} to ${head_block_number}`);
+                    this.result = `${this.result}Find result in blocks from ${from} to ${head_block_number}\n`;
+                    for(let i = from; i <= head_block_number; i++) {
+                      steem.api.getBlock(i, (e, block) => {
+                        console.log('get_block:', e, block);
+                        const transactions = block.transactions;
+                        transactions.forEach((trans) => {
+                          const data = trans.operations[0];
+                          if (data[0] === 'transfer') {
+                            if (data[1]['from'] === this.to && data[1]['to'] === this.username) {
+                              console.log('get_in_transfer:', data);
+                              if (data[1]['amount'] === this.money_str) {
+                                console.log('failed');
+                                this.result = `${this.result}${data[1]['memo']}\n`;
+                                this.result = `${this.result}===Failed===\n`;
+                                this.result = `${this.result}===Send Agian===\n`;
+                                this.from_block = 0;
+                                this.sendMoney();
+                              } else {
+                                console.log('success');
+                                this.result = `${this.result}${data[1]['memo']}\n`;
+                                this.result = `${this.result}===Success===\n`;
+                                steem.broadcast.transfer(
+                                  this.active_key,
+                                  this.username,
+                                  'ety001',
+                                  '0.001 SBD',
+                                  `Pay for ${this.post_url}`,
+                                  (err, res) => {});
+                                this.stop();
+                              }
+                            }
+                          }
+                        });
+                      });
+                    }
+                    this.from_block = head_block_number + 1;
+                  }
+                });
+              }
+            }, 30000);
+          },
+          stop() {
+            this.post_url = '';
+            this.money = '';
+            this.money_str = '';
+            this.status = false;
+            this.from_block = 0;
+            clearInterval(this.interval);
+            this.interval = null;
+            this.result = `${this.result}===Stopped!===\n`;
+          },
+          clear() {
+            console.log('clear');
+            this.username = '';
+            this.result = '';
+            this.active_key = '';
+            this.stop();
+          }
+        }
+      });
+    </script>
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-114047416-1"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'UA-114047416-1');
+    </script>
+  </body>
+</html>
