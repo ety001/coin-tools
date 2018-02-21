@@ -1,7 +1,70 @@
-<a href="https://github.com/ety001/coin-tools">Github repo</a>
-<div>
-    <ul>
-        <li><a href="https://ety001.github.io/coin-tools/steem-buy-votes-bot/">Steem Buy Votes Bot</a></li>
-        <li><a href="https://ety001.github.io/coin-tools/bitshares-ws-dev-tools/">Bitshares Dev Tool</a></li>
-    </ul>
-</div>
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Bitshares Dev Tools</title>
+    <script src="//cdn.steemjs.com/lib/latest/steem.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <style>
+      #app {
+        margin: 10px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="app">
+      <el-row>
+        <el-col :span="12">
+          <h1>Coin Tools</h1>
+          <p><a href="https://github.com/ety001/coin-tools">Github repo</a></p>
+          <p>
+            <el-table
+              :data="tools"
+              style="width: 100%">
+              <el-table-column
+                fixed
+                prop="project"
+                label="Project">
+                <template slot-scope="scope">
+                  <a href="{{ project.url }}">{{ project.title }}</a>
+                </template>
+              </el-table-column>
+              <el-table-column
+                prop="repo">
+                <template slot-scope="scope">
+                  <a href="{{ repo }}">Repo</a>
+                </template>
+              </el-table-column>
+            </el-table>
+          </p>
+        </el-col>
+      </el-row>
+    </div>
+    <script>
+      var app = new Vue({
+        el: '#app',
+        data: {
+          tools: [
+            {
+              project: {
+                title: 'Steem Buy Votes Bot',
+                url: 'https://ety001.github.io/coin-tools/steem-buy-votes-bot/'
+              },
+              repo: 'https://github.com/ety001/coin-tools/tree/master/steem-buy-votes-bot'
+            },
+            {
+              project: {
+                title: 'Bitshares Dev Tool',
+                url: 'https://ety001.github.io/coin-tools/bitshares-ws-dev-tools/'
+              },
+              repo: 'https://github.com/ety001/coin-tools/tree/master/bitshares-ws-dev-tools'
+            }
+          ]
+        }
+      });
+    </script>
+  </body>
+</html>
