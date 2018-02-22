@@ -53,8 +53,8 @@
       <el-row>
         <el-col :span="12">
           <h1>Result</h1>
-          <div style="max-height: 350px; overflow: scroll;">
-            <pre>{{ result }}</pre>
+          <div style="max-height: 350px; overflow: scroll; margin-right: 20px;">
+            <pre ref="result_box">{{ result }}</pre>
           </div>
         </el-col>
         <el-col :span="12">
@@ -109,8 +109,11 @@
             this.ws.onmessage = this.onmessage;
           },
           clearresult() {
+            this.result = '';
           },
           clearhistory() {
+            this.history = [];
+            localStorage.setItem('history', []);
           },
           useagain(index, row) {
             this.command = row.command;
@@ -133,7 +136,7 @@
             this.status = false;
           },
           output(msg) {
-            this.result = `${this.result}${msg}\n-----\n`;
+            this.result = `${msg}\n-----\n${this.result}`;
           }
         },
         mounted() {
