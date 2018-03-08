@@ -114,8 +114,13 @@
                 this.post_url,
                 (err, res) => {
                   console.log('send_money:', err, res);
-                  this.result = `${this.result}Transfer ${this.money_str}. BlockNum: ${res.block_num}\n`;
-                  this.from_block = res.block_num;
+                  if (err) {
+                    this.result = `${this.result}${err.cause}\n`;
+                    this.stop();
+                  } else {
+                    this.result = `${this.result}Transfer ${this.money_str}. BlockNum: ${res.block_num}\n`;
+                    this.from_block = res.block_num;
+                  }
                 });
             }
           },
