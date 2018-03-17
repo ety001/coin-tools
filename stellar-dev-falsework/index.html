@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Stellar Dev Falsework</title>
+    <script src="//cdn.steemjs.com/lib/latest/steem.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script src="./bower_components/stellar-sdk/stellar-sdk.min.js"></script>
+    <style>
+      #app {
+        margin: 10px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="app">
+      <h1>Stellar Dev Falsework</h1>
+      <el-row>
+        <el-col :span="24">
+          <el-form ref="form" label-width="100px">
+            <el-form-item label="Action Type">
+              <el-select v-model="actionType" placeholder="Select action type">
+                <el-option label="Make Order" value="make_order"></el-option>
+              </el-select>
+            </el-form-item>
+            <el-form-item label="privateKey">
+              <el-input v-model="privateKey"></el-input>
+            </el-form-item>
+            <div v-if="actionType === 'make_order'">
+              <el-form-item label="Base Asset">
+                <el-input v-model="baseAsset"></el-input>
+              </el-form-item>
+              <el-form-item label="Base Issuer">
+                <el-input v-model="baseIssuer"></el-input>
+              </el-form-item>
+              <el-form-item label="Counter Asset">
+                <el-input v-model="counterAsset"></el-input>
+              </el-form-item>
+              <el-form-item label="Counter Issuer">
+                <el-input v-model="counterIssuer"></el-input>
+              </el-form-item>
+              <el-form-item label="Selling">
+                <el-select v-model="selling" placeholder="Select selling type">
+                  <el-option label="Base Asset" value="base_asset"></el-option>
+                  <el-option label="Counter Asset" value="counter_asset"></el-option>
+                </el-select>
+              </el-form-item>
+              <el-form-item label="Amount">
+                <el-input v-model="amount"></el-input>
+              </el-form-item>
+              <el-form-item label="Price">
+                <el-input v-model="price"></el-input>
+              </el-form-item>
+              <el-form-item>
+                <el-button type="success" @click="orderbook">Get Orderbook</el-button>
+                <el-button type="success" @click="createOrder">Make Order</el-button>
+                <el-button @click="clear">Clear</el-button>
+              </el-form-item>
+            </div>
+          </el-form>
+        </el-col>
+      </el-row>
+      <el-row>
+        <el-col :span="24">
+          <p>
+            我是Steem见证人，欢迎给我投上一票。投票地址：
+            <a href="https://v2.steemconnect.com/sign/account-witness-vote?witness=ety001&approve=1" target="_blank">https://v2.steemconnect.com/sign/account-witness-vote?witness=ety001&approve=1</a>
+          </p>
+          <p>
+            I'm a steem witness，welcome to vote me by steemconnect:
+            <a href="https://v2.steemconnect.com/sign/account-witness-vote?witness=ety001&approve=1" target="_blank">https://v2.steemconnect.com/sign/account-witness-vote?witness=ety001&approve=1</a>
+          </p>
+        </el-col>
+      </el-row>
+    </div>
+
+    <script>
+      Vue.component('make-order', {
+        el: '#make_order'
+      });
+      var app = new Vue({
+        el: '#app',
+        data: {
+          serverUrl: 'https://horizon.stellar.org',
+          privateKey: '',
+          actionType: 'make_order',
+          baseAsset: 'XLM',
+          baseIssuer: null,
+          counterAsset: 'CNY',
+          counterIssuer: 'GAREELUB43IRHWEASCFBLKHURCGMHE5IF6XSE7EXDLACYHGRHM43RFOX',
+          selling: 'base_asset',
+          amount: 0,
+          price: 0,
+        },
+        methods: {
+          orderbook() {
+            const sellingAsset = this.baseAsset === 'XLM' ?
+                  StellarSdk.Asset.native() :
+                  new StellarSdk.Asset(this.baseAsset, this.baseIssuer);
+            const buyingAsset = this.counterAsset === 'XLM' ?
+                  StellarSdk.Asset.native() :
+                  new StellarSdk.Asset(this.counterAsset, this.counterIssuer);
+            this.server.orderbook(sellingAsset, buyingAsset).call()
+              .then(orderbook => console.log(orderbook));
+          },
+          createOrder() {
+            const keyPair = StellarSdk.Keypair.fromSecret(this.privateKey);
+            this.server.loadAccount(keyPair.publicKey())
+              .then(account => {
+                let baseAsset, counterAsset;
+                if (this.baseAsset === 'XLM') {
+                  baseAsset = StellarSdk.Asset.native();
+                } else {
+                  baseAsset = new StellarSdk.Asset(this.baseAsset, this.baseIssuer);
+                }
+                if (this.counterAsset === 'XLM') {
+                  counterAsset = StellarSdk.Asset.native();
+                } else {
+                  counterAsset = new StellarSdk.Asset(this.counterAsset, this.counterIssuer);
+                }
+
+                let op;
+                if (this.selling === 'base_asset') {
+                  op = StellarSdk.Operation.manageOffer({
+                    selling: baseAsset,
+                    buying: counterAsset,
+                    amount: Number(this.amount).toFixed(7), // The total amount you're selling
+                    price : Number(this.price).toFixed(7) // The exchange rate ratio (selling / buying)
+                  });
+                } else {
+                  op = StellarSdk.Operation.manageOffer({
+                    selling: counterAsset,
+                    buying: baseAsset,
+                    amount: Number(this.amount).toFixed(7), // The total amount you're selling
+                    price : Number(this.price).toFixed(7) // The exchange rate ratio (selling / buying)
+                  });
+                }
+
+                const tx = new StellarSdk.TransactionBuilder(account)
+                                .addOperation(op)
+                                .build();
+                tx.sign(keyPair);
+                this.server.submitTransaction(tx)
+                  .then(transactionResult => {
+                    console.log(transactionResult);
+                  }).catch(e => {
+                    console.log(e);
+                  });
+              });
+          },
+          clear() {
+
+          },
+        },
+        mounted() {
+          // connect server
+          this.server = new StellarSdk.Server(this.serverUrl);
+          window.server = this.server;
+          StellarSdk.Network.usePublicNetwork();
+        }
+      });
+    </script>
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-114047416-1"></script>
+  </body>
+</html>
