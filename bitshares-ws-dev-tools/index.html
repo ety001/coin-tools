@@ -84,7 +84,7 @@
         el: '#app',
         data: {
           result: '',
-          api_url: 'wss://ws.gdex.top',
+          api_url: 'wss://bts.to0l.cn:4443/ws',
           command: '',
           history: [],
           ws: null,
@@ -94,8 +94,9 @@
           run() {
             if (this.ws.readyState === 1) {
               if (this.command) {
+                const tmp = JSON.stringify(JSON.parse(this.command), null, 4);
                 this.ws.send(this.command);
-                this.output(`> ${this.command}`);
+                this.output(`> ${tmp}`);
                 this.history.unshift({'command': this.command});
                 localStorage.setItem('history', JSON.stringify(this.history));
               }
@@ -127,7 +128,8 @@
             console.log('onopen');
           },
           onmessage(evt) {
-            this.output(`< ${evt.data}`);
+            const tmp = JSON.stringify(JSON.parse(evt.data), null, 4);
+            this.output(`< ${tmp}`);
             console.log('onmessage');
           },
           onclose() {
