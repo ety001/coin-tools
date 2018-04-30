@@ -13,12 +13,12 @@ else
 fi
 
 logs=`docker logs --tail=1 $containerName`
-regx='[ [:alnum:] ]+ms.+th_a.+application.cpp:514.+handle_block.+].+Got [ [:digit:] ]+ transactions on block [ [:digit:] ]+ by [ [:alnum:] ]+ -- latency: [ [:digit:] ]+ms'
+regx='[[:digit:]]+ms th_a.+handle_block.+\] Got [[:digit:]]+ transactions on block [[:digit:]]+ by [[:alnum:][:punct:]]+ -- latency: [[:digit:]]+ ms'
 
 if [[ $logs =~ $regx ]];
 then
     echo 'ok'
-    # curl -d "content=[ok]:smiley: $logs" "$notifyURL"
+    #curl -d "content=[ok]:smiley: $logs" "$notifyURL"
 else
     curl -d "content=[err]:skull: $logs" "$notifyURL"
 fi
