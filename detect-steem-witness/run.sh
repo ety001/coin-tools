@@ -19,5 +19,5 @@ if [[ "$logs" =~ $regx ]];
 then
     echo "ok"
 else
-	curl -d "content=$logs" "$notifyURL"
+    curl -d "content=$logs" "$notifyURL"
 fi
