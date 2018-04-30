@@ -13,7 +13,7 @@ else
 fi
 
 logs=`docker logs --tail=1 $containerName` 
-regx="[ [:digit:] ]+ms.+th_a.+application.cpp:514.+handle_block.+].+Got [ [:digit:] ]+ transactions on block [ [:digit:] ]+ by [ [:alnum:] ]+ -- latency: [ [:digit:] ]+ms"
+regx="[ [:alnum:] ]+ms.+th_a.+application.cpp:514.+handle_block.+].+Got [ [:digit:] ]+ transactions on block [ [:digit:] ]+ by [ [:alnum:] ]+ -- latency: [ [:digit:] ]+ms"
 
 if [[ "$logs" =~ $regx ]];
 then
